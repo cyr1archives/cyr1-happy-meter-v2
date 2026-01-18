@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Submission {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  
+  name       String
+  department String
+  
+  averageScore Float
+  moodLabel    String 
+
+  q1Score Int
+  q2Score Int
+  q3Score Int
+  q4Score Int
+  q5Score Int
+
+  feedback String?
+}
