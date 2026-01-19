@@ -280,7 +280,7 @@ export default function HappyMeterApp() {
 // --- Updated Components for app/page.tsx ---
 
 function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefObject<HTMLDivElement> }) {
-    // Exact paths based on your file structure
+    // Exact paths based on your public folder
     const emojis = [
         "/emojis/floating-emojis/emoji-2.png",
         "/emojis/floating-emojis/emoji-3.png",
@@ -296,13 +296,13 @@ function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefOb
       const elements = gsap.utils.toArray('.floating-emoji');
 
       elements.forEach((el: any) => {
-        // 1. SET INITIAL POSITION USING CSS PERCENTAGES
-        // This bypasses the "window width is 0" bug entirely.
+        // 1. SET INITIAL POSITION USING CSS PERCENTAGES (The Fix)
+        // This stops the emojis from bunching in the corner
         gsap.set(el, {
           left: gsap.utils.random(10, 90) + "%",
           top: gsap.utils.random(10, 90) + "%",
           xPercent: -50, // Centers the anchor point
-          yPercent: -50, // Centers the anchor point
+          yPercent: -50,
           scale: gsap.utils.random(0.6, 1.1),
           rotation: gsap.utils.random(-20, 20),
           opacity: 0
@@ -316,9 +316,8 @@ function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefOb
         });
 
         // 3. FLOATING MOVEMENT (Relative Pixels)
-        // Since the base position is set by %, we can safely bob around using pixels now.
         gsap.to(el, {
-          x: "random(-60, 60)", // Move relative to the % position
+          x: "random(-60, 60)",
           y: "random(-60, 60)",
           rotation: "random(-20, 20)",
           duration: "random(10, 20)",
@@ -344,14 +343,13 @@ function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefOb
             key={i}
             src={src}
             alt=""
-            // Ensure absolute positioning is explicit here
+            // Ensure absolute positioning is explicitly set here
             className="floating-emoji absolute w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-lg pointer-events-auto will-change-transform cursor-pointer"
           />
         ))}
       </div>
     );
 }
-
 function DynamicBackground({ stage, score }: { stage: StageType, score: number | null }) {
   let moodLevel = "default";
   if (stage !== 'welcome' && score !== null) {
