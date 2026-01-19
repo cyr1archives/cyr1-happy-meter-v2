@@ -289,19 +289,52 @@ function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefOb
     useGSAP(() => {
       if (!containerRef.current) return;
       const elements = gsap.utils.toArray('.floating-emoji');
+
       elements.forEach((el: any) => {
-        gsap.set(el, { x: gsap.utils.random(0, window.innerWidth), y: gsap.utils.random(0, window.innerHeight), scale: gsap.utils.random(0.6, 1.1), rotation: gsap.utils.random(-20, 20), opacity: 0 });
+        // Initial state
+        gsap.set(el, {
+          x: gsap.utils.random(0, window.innerWidth - 100),
+          y: gsap.utils.random(0, window.innerHeight - 100),
+          scale: gsap.utils.random(0.6, 1.1),
+          rotation: gsap.utils.random(-20, 20),
+          opacity: 0
+        });
+
+        // Fade in
         gsap.to(el, { opacity: gsap.utils.random(0.3, 0.6), duration: 1.5, delay: gsap.utils.random(0, 2) });
-        gsap.to(el, { y: "+=" + gsap.utils.random(-200, 200), x: "+=" + gsap.utils.random(-150, 150), rotation: "+=" + gsap.utils.random(-60, 60), duration: gsap.utils.random(8, 15), repeat: -1, yoyo: true, ease: "sine.inOut" });
-        el.addEventListener("mouseenter", () => { gsap.to(el, { scale: 1.35, rotation: "+=15", duration: 0.4, ease: "back.out(1.7)", overwrite: 'auto' }); });
-        el.addEventListener("mouseleave", () => { gsap.to(el, { scale: gsap.utils.random(0.6, 1.1), duration: 0.6, ease: "power2.out", overwrite: 'auto' }); });
+
+        // Floating movement
+        gsap.to(el, {
+          y: "+=" + gsap.utils.random(-150, 150),
+          x: "+=" + gsap.utils.random(-100, 100),
+          rotation: "+=" + gsap.utils.random(-45, 45),
+          duration: gsap.utils.random(10, 20),
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut"
+        });
+
+        // Interactivity
+        el.addEventListener("mouseenter", () => {
+          gsap.to(el, { scale: 1.3, rotation: "+=20", opacity: 1, duration: 0.4, ease: "back.out(1.7)", overwrite: 'auto' });
+        });
+        el.addEventListener("mouseleave", () => {
+          gsap.to(el, { scale: gsap.utils.random(0.6, 1.1), opacity: 0.5, duration: 0.6, ease: "power2.out", overwrite: 'auto' });
+        });
       });
     }, { scope: containerRef });
 
     return (
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      // Changed z-index to 10 so they are above the background but below the glass panel (z-20)
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
         {emojis.map((src, i) => (
-          <img key={i} src={src} alt={`mood-${i}`} className="floating-emoji absolute w-32 h-32 object-contain drop-shadow-lg cursor-pointer-events-auto will-change-transform" />
+          <img
+            key={i}
+            src={src}
+            alt=""
+            // Added pointer-events-auto so the mouseenter triggers
+            className="floating-emoji absolute w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-lg pointer-events-auto will-change-transform cursor-pointer"
+          />
         ))}
       </div>
     );
