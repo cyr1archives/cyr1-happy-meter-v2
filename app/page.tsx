@@ -267,87 +267,68 @@ export default function HappyMeterApp() {
 // --- Internal Components ---
 
 function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefObject<HTMLDivElement> }) {
-    const emojis = [
-        "/emojis/floating-emojis/emoji-2.png",
-        "/emojis/floating-emojis/emoji-3.png",
-        "/emojis/floating-emojis/emoji-4.png",
-        "/emojis/floating-emojis/emoji-5.png",
-        "/emojis/floating-emojis/emoji-10.png"
-    ];
+  const emojis = [
+    "/emojis/floating-emojis/emoji-2.png",
+    "/emojis/floating-emojis/emoji-3.png",
+    "/emojis/floating-emojis/emoji-4.png",
+    "/emojis/floating-emojis/emoji-5.png",
+    "/emojis/floating-emojis/emoji-10.png"
+  ];
 
-    useGSAP(() => {
-        if (!containerRef.current) return;
+  useGSAP(() => {
+    const elements = gsap.utils.toArray('.floating-emoji');
 
-        const container = containerRef.current;
-        const elements = gsap.utils.toArray('.floating-emoji');
+    elements.forEach((el: any) => {
+      // 1. Initial Position using Percentages (Bypasses coordinate calculation errors)
+      gsap.set(el, {
+        left: `${gsap.utils.random(10, 80)}%`,
+        top: `${gsap.utils.random(10, 80)}%`,
+        scale: gsap.utils.random(0.6, 1.1),
+        rotation: gsap.utils.random(-20, 20),
+        opacity: 0,
+      });
 
-        const initFloating = () => {
-            // 1. Get current dimensions
-            const w = container.offsetWidth || window.innerWidth;
-            const h = container.offsetHeight || window.innerHeight;
+      // 2. Fade in
+      gsap.to(el, {
+        opacity: gsap.utils.random(0.4, 0.6),
+        duration: 2,
+        delay: gsap.utils.random(0, 1)
+      });
 
-            elements.forEach((el: any) => {
-                // 2. Clear any existing animations to prevent conflicts during resize
-                gsap.killTweensOf(el);
+      // 3. Floating Animation using x/y for subtle movement relative to their % position
+      gsap.to(el, {
+        x: "random(-40, 40)",
+        y: "random(-40, 40)",
+        rotation: "random(-20, 20)",
+        duration: "random(6, 12)",
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+      });
 
-                // 3. Set random position based on NEW dimensions
-                gsap.set(el, {
-                    x: gsap.utils.random(50, w - 100),
-                    y: gsap.utils.random(50, h - 100),
-                    scale: gsap.utils.random(0.6, 1.1),
-                    rotation: gsap.utils.random(-20, 20),
-                    opacity: 0,
-                    force3D: true
-                });
+      // 4. Interaction listeners
+      el.addEventListener("mouseenter", () => {
+        gsap.to(el, { scale: 1.3, rotation: "+=15", opacity: 1, duration: 0.4 });
+      });
+      el.addEventListener("mouseleave", () => {
+        gsap.to(el, { scale: gsap.utils.random(0.6, 1.1), opacity: 0.6, duration: 0.6 });
+      });
+    });
+  }, { scope: containerRef });
 
-                // 4. Restart Animations
-                gsap.to(el, { opacity: gsap.utils.random(0.4, 0.7), duration: 1.5 });
-
-                gsap.to(el, {
-                    y: "+=" + gsap.utils.random(-120, 120),
-                    x: "+=" + gsap.utils.random(-100, 100),
-                    rotation: "+=" + gsap.utils.random(-40, 40),
-                    duration: gsap.utils.random(10, 20),
-                    repeat: -1,
-                    yoyo: true,
-                    ease: "sine.inOut"
-                });
-            });
-        };
-
-        // Run on initial mount
-        initFloating();
-
-        // 5. Add Resize Listener
-        window.addEventListener('resize', initFloating);
-
-        // 6. Interaction Listeners (Persistent)
-        elements.forEach((el: any) => {
-            el.addEventListener("mouseenter", () => {
-                gsap.to(el, { scale: 1.4, opacity: 1, duration: 0.3, overwrite: 'auto' });
-            });
-            el.addEventListener("mouseleave", () => {
-                gsap.to(el, { scale: gsap.utils.random(0.6, 1.1), opacity: 0.6, duration: 0.5, overwrite: 'auto' });
-            });
-        });
-
-        // Cleanup listener on unmount
-        return () => window.removeEventListener('resize', initFloating);
-
-    }, { scope: containerRef });
-
-    return (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-            {emojis.map((src, i) => (
-                <img
-                    key={i}
-                    src={src}
-                    alt=""
-                    className="floating-emoji absolute w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-lg pointer-events-auto will-change-transform cursor-pointer"
-                />
-            ))}
-        </div>
-    );
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      {emojis.map((src, i) => (
+        <img
+          key={i}
+          src={src}
+          alt=""
+          className="floating-emoji absolute w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-lg pointer-events-auto will-change-transform cursor-pointer"
+          style={{ position: 'absolute' }} // Inline enforcement
+        />
+      ))}
+    </div>
+  );
 }
 
 function DynamicBackground({ stage, score }: { stage: StageType, score: number | null }) {
