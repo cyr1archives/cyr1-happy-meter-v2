@@ -280,76 +280,76 @@ export default function HappyMeterApp() {
 // --- Updated Components for app/page.tsx ---
 
 function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefObject<HTMLDivElement> }) {
-  // 1. EXACT PATH MATCHING: These must match your 'public' folder filenames exactly.
-  const emojis = [
-    "/emojis/floating-emojis/emoji-2.png",
-    "/emojis/floating-emojis/emoji-3.png",
-    "/emojis/floating-emojis/emoji-4.png",
-    "/emojis/floating-emojis/emoji-5.png",
-    "/emojis/floating-emojis/emoji-10.png"
-  ];
+    // Exact paths based on your file structure
+    const emojis = [
+        "/emojis/floating-emojis/emoji-2.png",
+        "/emojis/floating-emojis/emoji-3.png",
+        "/emojis/floating-emojis/emoji-4.png",
+        "/emojis/floating-emojis/emoji-5.png",
+        "/emojis/floating-emojis/emoji-10.png"
+    ];
 
-  useGSAP(() => {
-    // 2. Safety Check: Only run if the container exists
-    if (!containerRef.current) return;
+    useGSAP(() => {
+      // Safety check
+      if (!containerRef.current) return;
 
-    const elements = gsap.utils.toArray('.floating-emoji');
+      const elements = gsap.utils.toArray('.floating-emoji');
 
-    elements.forEach((el: any) => {
-      // 3. INITIAL POSITION: Use Percentages (0-100%)
-      // This bypasses the "0 width" bug because CSS handles the math.
-      gsap.set(el, {
-        left: gsap.utils.random(10, 90) + "%", // Random horizontal %
-        top: gsap.utils.random(10, 90) + "%",  // Random vertical %
-        scale: gsap.utils.random(0.6, 1.1),
-        rotation: gsap.utils.random(-20, 20),
-        opacity: 0,
-        xPercent: -50, // Centers the anchor point
-        yPercent: -50  // Centers the anchor point
+      elements.forEach((el: any) => {
+        // 1. SET INITIAL POSITION USING CSS PERCENTAGES
+        // This bypasses the "window width is 0" bug entirely.
+        gsap.set(el, {
+          left: gsap.utils.random(10, 90) + "%",
+          top: gsap.utils.random(10, 90) + "%",
+          xPercent: -50, // Centers the anchor point
+          yPercent: -50, // Centers the anchor point
+          scale: gsap.utils.random(0.6, 1.1),
+          rotation: gsap.utils.random(-20, 20),
+          opacity: 0
+        });
+
+        // 2. FADE IN
+        gsap.to(el, {
+            opacity: gsap.utils.random(0.4, 0.7),
+            duration: 1.5,
+            delay: gsap.utils.random(0, 1)
+        });
+
+        // 3. FLOATING MOVEMENT (Relative Pixels)
+        // Since the base position is set by %, we can safely bob around using pixels now.
+        gsap.to(el, {
+          x: "random(-60, 60)", // Move relative to the % position
+          y: "random(-60, 60)",
+          rotation: "random(-20, 20)",
+          duration: "random(10, 20)",
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut"
+        });
+
+        // 4. INTERACTIVITY
+        el.addEventListener("mouseenter", () => {
+          gsap.to(el, { scale: 1.4, rotation: "+=15", opacity: 1, duration: 0.3, overwrite: 'auto' });
+        });
+        el.addEventListener("mouseleave", () => {
+          gsap.to(el, { scale: gsap.utils.random(0.6, 1.1), opacity: 0.6, duration: 0.5, overwrite: 'auto' });
+        });
       });
+    }, { scope: containerRef });
 
-      // 4. FADE IN
-      gsap.to(el, {
-        opacity: gsap.utils.random(0.4, 0.7),
-        duration: 1.5,
-        delay: gsap.utils.random(0, 1)
-      });
-
-      // 5. FLOATING MOTION (Relative pixels)
-      // Now we can use pixels for the *movement* because it's relative to the % position
-      gsap.to(el, {
-        x: "random(-50, 50)",
-        y: "random(-50, 50)",
-        rotation: "random(-20, 20)",
-        duration: "random(10, 20)",
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut"
-      });
-
-      // 6. INTERACTIONS
-      el.addEventListener("mouseenter", () => {
-        gsap.to(el, { scale: 1.4, opacity: 1, duration: 0.3, overwrite: 'auto' });
-      });
-      el.addEventListener("mouseleave", () => {
-        gsap.to(el, { scale: gsap.utils.random(0.6, 1.1), opacity: 0.6, duration: 0.5, overwrite: 'auto' });
-      });
-    });
-  }, { scope: containerRef });
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      {emojis.map((src, i) => (
-        <img
-          key={i}
-          src={src}
-          alt={`floating-emoji-${i}`}
-          // 7. CRITICAL CSS: Ensure 'absolute' is set here
-          className="floating-emoji absolute w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-lg pointer-events-auto will-change-transform cursor-pointer"
-        />
-      ))}
-    </div>
-  );
+    return (
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
+        {emojis.map((src, i) => (
+          <img
+            key={i}
+            src={src}
+            alt=""
+            // Ensure absolute positioning is explicit here
+            className="floating-emoji absolute w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-lg pointer-events-auto will-change-transform cursor-pointer"
+          />
+        ))}
+      </div>
+    );
 }
 
 function DynamicBackground({ stage, score }: { stage: StageType, score: number | null }) {
