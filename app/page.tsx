@@ -280,66 +280,76 @@ export default function HappyMeterApp() {
 // --- Updated Components for app/page.tsx ---
 
 function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefObject<HTMLDivElement> }) {
-    // UPDATED: Simplified paths to avoid 404s on Vercel/Linux
-    const emojis = [
-        "/emojis/floating-emojis/emoji-2.png",
-        "/emojis/floating-emojis/emoji-3.png",
-        "/emojis/floating-emojis/emoji-4.png",
-        "/emojis/floating-emojis/emoji-5.png",
-        "/emojis/floating-emojis/emoji-10.png"
-    ];
+  // 1. EXACT PATH MATCHING: These must match your 'public' folder filenames exactly.
+  const emojis = [
+    "/emojis/floating-emojis/emoji-2.png",
+    "/emojis/floating-emojis/emoji-3.png",
+    "/emojis/floating-emojis/emoji-4.png",
+    "/emojis/floating-emojis/emoji-5.png",
+    "/emojis/floating-emojis/emoji-10.png"
+  ];
 
-    useGSAP(() => {
-      if (!containerRef.current) return;
-      const elements = gsap.utils.toArray('.floating-emoji');
+  useGSAP(() => {
+    // 2. Safety Check: Only run if the container exists
+    if (!containerRef.current) return;
 
-      elements.forEach((el: any) => {
-        // Initial state
-        gsap.set(el, {
-          x: gsap.utils.random(0, window.innerWidth - 100),
-          y: gsap.utils.random(0, window.innerHeight - 100),
-          scale: gsap.utils.random(0.6, 1.1),
-          rotation: gsap.utils.random(-20, 20),
-          opacity: 0
-        });
+    const elements = gsap.utils.toArray('.floating-emoji');
 
-        // Fade in
-        gsap.to(el, { opacity: gsap.utils.random(0.4, 0.7), duration: 1.5, delay: gsap.utils.random(0, 1) });
-
-        // Floating movement
-        gsap.to(el, {
-          y: "+=" + gsap.utils.random(-150, 150),
-          x: "+=" + gsap.utils.random(-100, 100),
-          rotation: "+=" + gsap.utils.random(-45, 45),
-          duration: gsap.utils.random(10, 25),
-          repeat: -1,
-          yoyo: true,
-          ease: "sine.inOut"
-        });
-
-        // Interactivity - Ensured pointer-events-auto is on the element
-        el.addEventListener("mouseenter", () => {
-          gsap.to(el, { scale: 1.4, rotation: "+=15", opacity: 1, duration: 0.4, ease: "back.out(1.7)", overwrite: 'auto' });
-        });
-        el.addEventListener("mouseleave", () => {
-          gsap.to(el, { scale: gsap.utils.random(0.6, 1.1), opacity: 0.6, duration: 0.6, ease: "power2.out", overwrite: 'auto' });
-        });
+    elements.forEach((el: any) => {
+      // 3. INITIAL POSITION: Use Percentages (0-100%)
+      // This bypasses the "0 width" bug because CSS handles the math.
+      gsap.set(el, {
+        left: gsap.utils.random(10, 90) + "%", // Random horizontal %
+        top: gsap.utils.random(10, 90) + "%",  // Random vertical %
+        scale: gsap.utils.random(0.6, 1.1),
+        rotation: gsap.utils.random(-20, 20),
+        opacity: 0,
+        xPercent: -50, // Centers the anchor point
+        yPercent: -50  // Centers the anchor point
       });
-    }, { scope: containerRef });
 
-    return (
-      // z-10 puts them between the background (-z-10) and the glass panel (z-20)
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
-        {emojis.map((src, i) => (
-          <img
-            key={i}
-            src={src}
-            alt=""
-            className="floating-emoji absolute w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-lg pointer-events-auto will-change-transform cursor-pointer"
-          />
-        ))}
-      </div>
-    );
+      // 4. FADE IN
+      gsap.to(el, {
+        opacity: gsap.utils.random(0.4, 0.7),
+        duration: 1.5,
+        delay: gsap.utils.random(0, 1)
+      });
+
+      // 5. FLOATING MOTION (Relative pixels)
+      // Now we can use pixels for the *movement* because it's relative to the % position
+      gsap.to(el, {
+        x: "random(-50, 50)",
+        y: "random(-50, 50)",
+        rotation: "random(-20, 20)",
+        duration: "random(10, 20)",
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+      });
+
+      // 6. INTERACTIONS
+      el.addEventListener("mouseenter", () => {
+        gsap.to(el, { scale: 1.4, opacity: 1, duration: 0.3, overwrite: 'auto' });
+      });
+      el.addEventListener("mouseleave", () => {
+        gsap.to(el, { scale: gsap.utils.random(0.6, 1.1), opacity: 0.6, duration: 0.5, overwrite: 'auto' });
+      });
+    });
+  }, { scope: containerRef });
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      {emojis.map((src, i) => (
+        <img
+          key={i}
+          src={src}
+          alt={`floating-emoji-${i}`}
+          // 7. CRITICAL CSS: Ensure 'absolute' is set here
+          className="floating-emoji absolute w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-lg pointer-events-auto will-change-transform cursor-pointer"
+        />
+      ))}
+    </div>
+  );
 }
 
 function DynamicBackground({ stage, score }: { stage: StageType, score: number | null }) {
