@@ -52,7 +52,7 @@ export async function GET(request: Request) {
     // 6. Send the Email
     await transporter.sendMail({
       from: `"Happy Meter AI" <${process.env.EMAIL_USER}>`,
-      to: 'leadership@yourcompany.com', // Change this to your boss/client email
+      to: 'dumadagcyrone@outlook.ph', // Change this to your boss/client email
       subject: `Weekly Team Pulse: ${manilaDate}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; color: #333;">
