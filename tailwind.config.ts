@@ -6,23 +6,51 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+
   theme: {
     extend: {
-      colors: {
-        'sandy-brown': 'var(--sandy-brown)',
-        'honey-bronze': 'var(--honey-bronze)',
-        'tuscan-sun': 'var(--tuscan-sun)',
-        'golden-pollen': 'var(--golden-pollen)',
-        'mustard': 'var(--mustard)',
-        'royal-gold': 'var(--royal-gold)',
-        'banana-cream': 'var(--banana-cream)',
-        'canary-yellow': 'var(--canary-yellow)',
+      /* ---------------------------------------------
+         Typography
+      --------------------------------------------- */
+      fontFamily: {
+        sans: ["var(--font-poppins)", "system-ui", "sans-serif"],
       },
+
+      /* ---------------------------------------------
+         Semantic Colors (CSS Variable Driven)
+      --------------------------------------------- */
+      colors: {
+        foreground: "rgb(var(--foreground))",
+
+        mood: {
+          red: "var(--mood-red)",
+          orange: "var(--mood-orange)",
+          yellow: "var(--mood-yellow)",
+          green: "var(--mood-green)",
+          blue: "var(--mood-blue)",
+        },
+      },
+
+      /* ---------------------------------------------
+         Animated Gradient Hook
+         (actual animation lives in CSS)
+      --------------------------------------------- */
       backgroundImage: {
-        'warm-animated': 'linear-gradient(-45deg, var(--canary-yellow), var(--banana-cream), var(--tuscan-sun), var(--sandy-brown))',
-      }
+        "warm-animated":
+          "linear-gradient(-45deg, var(--g1), var(--g2), var(--g3), var(--g4))",
+      },
+
+      /* ---------------------------------------------
+         Animation Utilities (optional helpers)
+      --------------------------------------------- */
+      animation: {
+        "warm-pulse": "deepWarmPulse 20s ease infinite",
+        "slow-pulse": "deepWarmPulse 30s ease infinite",
+      },
     },
   },
+
   plugins: [],
 };
+
 export default config;

@@ -2,10 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* --------------------------------------------------
+   Root Variables
+-------------------------------------------------- */
+
 :root {
   --foreground: 23, 23, 23;
 
-  /* 5-Scale Palette */
+  /* Mood Palette */
   --mood-red: #ef4444;
   --mood-orange: #f97316;
   --mood-yellow: #eab308;
@@ -13,8 +17,12 @@
   --mood-blue: #3b82f6;
 }
 
-/* FIX: Apply text-size-adjust to html and body for maximum compatibility */
-html, body {
+/* --------------------------------------------------
+   Base Document Fixes
+-------------------------------------------------- */
+
+html,
+body {
   color: rgb(var(--foreground));
   background: #fff588;
   -webkit-text-size-adjust: 100%;
@@ -22,9 +30,11 @@ html, body {
   text-size-adjust: 100%;
 }
 
-@layer utilities {
-  /* FIX: Explicit ordering for Backdrop Filter (Webkit first, then Standard) */
+/* --------------------------------------------------
+   Glass Utilities
+-------------------------------------------------- */
 
+@layer utilities {
   .glass-panel {
     @apply bg-white/40 border border-white/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)];
     -webkit-backdrop-filter: blur(24px);
@@ -32,61 +42,121 @@ html, body {
   }
 
   .glass-input {
-    @apply bg-white/60 border border-white/60 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50;
+    @apply bg-white/60 border border-white/60 text-gray-800 placeholder-gray-500
+           focus:outline-none focus:ring-2 focus:ring-yellow-500/50;
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
   }
 
   .glass-button-active {
-     @apply bg-white/70 border-white/70 shadow-lg;
-     -webkit-backdrop-filter: blur(12px);
-     backdrop-filter: blur(12px);
+    @apply bg-white/70 border-white/70 shadow-lg;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
   }
 
-  /* Animation Utilities */
-  .will-change-transform { will-change: transform; }
-  .cursor-pointer-events-auto { pointer-events: auto; cursor: pointer; }
+  .will-change-transform {
+    will-change: transform;
+  }
 }
 
-/* --- Interactive Vignette & Backgrounds --- */
+/* --------------------------------------------------
+   Animated Background (NON-RESETTING)
+-------------------------------------------------- */
 
-/* Your base animated class */
 .bg-warm-deep-animated {
-    background: linear-gradient(-45deg, #e0a743, #ffdb25, #fef08a, #ffba31);
-    background-size: 300% 300%;
-    animation: deepWarmPulse 20s ease infinite;
+  /* Default (welcome) colors */
+  --g1: #e0a743;
+  --g2: #ffdb25;
+  --g3: #fef08a;
+  --g4: #ffba31;
+
+  background-image: linear-gradient(
+    -45deg,
+    var(--g1),
+    var(--g2),
+    var(--g3),
+    var(--g4)
+  );
+  background-size: 300% 300%;
+  animation: deepWarmPulse 20s ease infinite;
+
+  transition:
+    opacity 1200ms ease,
+    filter 1200ms ease,
+    --g1 1200ms ease,
+    --g2 1200ms ease,
+    --g3 1200ms ease,
+    --g4 1200ms ease;
 }
 
-/* Dynamic colors based on the data-mood attribute */
+/* --------------------------------------------------
+   Mood Overrides (VARIABLES ONLY — no restart)
+-------------------------------------------------- */
+
 .bg-warm-deep-animated[data-mood="poor"] {
-    background: linear-gradient(135deg, #ef4444, #f87171);
+  --g1: #7f1d1d;
+  --g2: #ef4444;
+  --g3: #f87171;
+  --g4: #b91c1c;
 }
+
 .bg-warm-deep-animated[data-mood="fair"] {
-    background: linear-gradient(135deg, #f97316, #fb923c);
+  --g1: #9a3412;
+  --g2: #f97316;
+  --g3: #fb923c;
+  --g4: #c2410c;
 }
+
 .bg-warm-deep-animated[data-mood="good"] {
-    background: linear-gradient(135deg, #eab308, #facc15);
+  --g1: #854d0e;
+  --g2: #eab308;
+  --g3: #facc15;
+  --g4: #ca8a04;
 }
+
 .bg-warm-deep-animated[data-mood="very-good"] {
-    background: linear-gradient(135deg, #22c55e, #4ade80);
+  --g1: #14532d;
+  --g2: #22c55e;
+  --g3: #4ade80;
+  --g4: #15803d;
 }
+
 .bg-warm-deep-animated[data-mood="excellent"] {
-    background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  --g1: #1e3a8a;
+  --g2: #3b82f6;
+  --g3: #60a5fa;
+  --g4: #1d4ed8;
 }
+
+/* --------------------------------------------------
+   Background Animation
+-------------------------------------------------- */
 
 @keyframes deepWarmPulse {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
+/* --------------------------------------------------
+   Vignette Overlay
+-------------------------------------------------- */
+
 .vignette-overlay {
-    background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.15) 100%);
-    pointer-events: none;
-    position: fixed;
-    inset: 0;
-    z-index: 0;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at center,
+    transparent 40%,
+    rgba(0, 0, 0, 0.15) 100%
+  );
 }
+
+/* --------------------------------------------------
+   Custom Select Arrow
+-------------------------------------------------- */
 
 .custom-select-icon {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");

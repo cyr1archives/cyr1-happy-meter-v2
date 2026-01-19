@@ -1,31 +1,52 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google"; // 1. Import Poppins
+import { Poppins } from "next/font/google";
 import "./globals.css";
 
-// 2. Configure Poppins (Weights: Regular, SemiBold, Black)
+/* --------------------------------------------------
+   Font Configuration
+-------------------------------------------------- */
+
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["400", "600", "900"],
   variable: "--font-poppins",
+  display: "swap",
 });
 
+/* --------------------------------------------------
+   Metadata
+-------------------------------------------------- */
+
 export const metadata: Metadata = {
-  title: "Happy Meter V2",
+  title: "Happy Meter 2.0",
   description: "Internal team sentiment tracking",
-  // 3. Link your new Favicon
   icons: {
-    icon: '/favicon.svg',
+    icon: "/favicon.svg",
   },
 };
 
+/* --------------------------------------------------
+   Root Layout
+-------------------------------------------------- */
+
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
-      <body className={`${poppins.variable} font-sans antialiased`}>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`
+          ${poppins.variable}
+          font-sans
+          antialiased
+          min-h-screen
+          bg-transparent
+        `}
+      >
+        {children}
+      </body>
     </html>
   );
 }
