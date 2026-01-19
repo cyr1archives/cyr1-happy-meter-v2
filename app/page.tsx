@@ -337,7 +337,7 @@ function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefOb
     }, { scope: containerRef });
 
     return (
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         {emojis.map((src, i) => (
           <img
             key={i}
