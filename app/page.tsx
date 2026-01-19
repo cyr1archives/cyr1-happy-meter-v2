@@ -277,13 +277,16 @@ export default function HappyMeterApp() {
 
 // --- Components ---
 
+// --- Updated Components for app/page.tsx ---
+
 function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefObject<HTMLDivElement> }) {
+    // UPDATED: Simplified paths to avoid 404s on Vercel/Linux
     const emojis = [
-        "/emojis/floating-emojis/emoji (2).png",
-        "/emojis/floating-emojis/emoji (3).png",
-        "/emojis/floating-emojis/emoji (4).png",
-        "/emojis/floating-emojis/emoji (5).png",
-        "/emojis/floating-emojis/emoji (10).png"
+        "/emojis/floating-emojis/emoji-2.png",
+        "/emojis/floating-emojis/emoji-3.png",
+        "/emojis/floating-emojis/emoji-4.png",
+        "/emojis/floating-emojis/emoji-5.png",
+        "/emojis/floating-emojis/emoji-10.png"
     ];
 
     useGSAP(() => {
@@ -301,38 +304,37 @@ function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefOb
         });
 
         // Fade in
-        gsap.to(el, { opacity: gsap.utils.random(0.3, 0.6), duration: 1.5, delay: gsap.utils.random(0, 2) });
+        gsap.to(el, { opacity: gsap.utils.random(0.4, 0.7), duration: 1.5, delay: gsap.utils.random(0, 1) });
 
         // Floating movement
         gsap.to(el, {
           y: "+=" + gsap.utils.random(-150, 150),
           x: "+=" + gsap.utils.random(-100, 100),
           rotation: "+=" + gsap.utils.random(-45, 45),
-          duration: gsap.utils.random(10, 20),
+          duration: gsap.utils.random(10, 25),
           repeat: -1,
           yoyo: true,
           ease: "sine.inOut"
         });
 
-        // Interactivity
+        // Interactivity - Ensured pointer-events-auto is on the element
         el.addEventListener("mouseenter", () => {
-          gsap.to(el, { scale: 1.3, rotation: "+=20", opacity: 1, duration: 0.4, ease: "back.out(1.7)", overwrite: 'auto' });
+          gsap.to(el, { scale: 1.4, rotation: "+=15", opacity: 1, duration: 0.4, ease: "back.out(1.7)", overwrite: 'auto' });
         });
         el.addEventListener("mouseleave", () => {
-          gsap.to(el, { scale: gsap.utils.random(0.6, 1.1), opacity: 0.5, duration: 0.6, ease: "power2.out", overwrite: 'auto' });
+          gsap.to(el, { scale: gsap.utils.random(0.6, 1.1), opacity: 0.6, duration: 0.6, ease: "power2.out", overwrite: 'auto' });
         });
       });
     }, { scope: containerRef });
 
     return (
-      // Changed z-index to 10 so they are above the background but below the glass panel (z-20)
+      // z-10 puts them between the background (-z-10) and the glass panel (z-20)
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
         {emojis.map((src, i) => (
           <img
             key={i}
             src={src}
             alt=""
-            // Added pointer-events-auto so the mouseenter triggers
             className="floating-emoji absolute w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-lg pointer-events-auto will-change-transform cursor-pointer"
           />
         ))}
@@ -341,7 +343,6 @@ function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefOb
 }
 
 function DynamicBackground({ stage, score }: { stage: StageType, score: number | null }) {
-  // Determine the mood level based on score
   let moodLevel = "default";
   if (stage !== 'welcome' && score !== null) {
     if (score <= 1.5) moodLevel = "poor";
@@ -353,8 +354,8 @@ function DynamicBackground({ stage, score }: { stage: StageType, score: number |
 
   return (
     <div
-      className={`absolute inset-0 -z-10 bg-warm-deep-animated transition-all duration-[1500ms] ease-in-out`}
-      data-mood={moodLevel} // Use data attribute instead of style prop
+      className="absolute inset-0 -z-10 bg-warm-deep-animated transition-all duration-[1500ms] ease-in-out"
+      data-mood={moodLevel}
     />
   );
 }
