@@ -9,6 +9,7 @@ import { Howl } from 'howler';
 import Link from "next/link";
 import { UserCircle2 } from "lucide-react";
 import { DEPARTMENTS } from "@/app/lib/constants"; // Import here
+import { SpeedInsights } from "@vercel/speed-insights/next"
 gsap.registerPlugin(useGSAP);
 
 
