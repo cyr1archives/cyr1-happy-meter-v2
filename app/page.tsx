@@ -8,10 +8,10 @@ import confetti from "canvas-confetti";
 import { Howl } from 'howler';
 import Link from "next/link";
 import { UserCircle2 } from "lucide-react";
-import { DEPARTMENTS } from "@/app/lib/constants"; // Import here
-import { SpeedInsights } from "@vercel/speed-insights/next"
-gsap.registerPlugin(useGSAP);
+import { DEPARTMENTS } from "@/app/lib/constants";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
+gsap.registerPlugin(useGSAP);
 
 const QUESTIONS = [
   { id: "q1", text: "How are you today?", category: "Mood & Well-Being" },
@@ -39,12 +39,11 @@ export default function HappyMeterApp() {
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [cumulativeScore, setCumulativeScore] = useState<number | null>(null);
 
-  // --- Sound System Fix ---
-  // We use a ref to hold the Howl instances so they persist without reloading
   const soundsRef = useRef<Record<string, Howl> | null>(null);
+  const heroEmojiRef = useRef<HTMLImageElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Initialize sounds only on the client side
     soundsRef.current = {
         click: new Howl({ src: ['/sounds/click.mp3'], volume: 0.5, preload: true }),
         hover: new Howl({ src: ['/sounds/hover.mp3'], volume: 0.2, preload: true }),
@@ -58,9 +57,6 @@ export default function HappyMeterApp() {
         soundsRef.current[type].play();
     }
   };
-
-  const heroEmojiRef = useRef<HTMLImageElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleStart = () => {
     playSound('click');
@@ -131,7 +127,6 @@ export default function HappyMeterApp() {
 
     } catch (error) {
         console.error(error);
-        alert("Submission failed. Check console.");
         setStage("feedback");
     }
   };
@@ -143,9 +138,12 @@ export default function HappyMeterApp() {
 
   return (
     <main ref={containerRef} className="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden transition-colors duration-1000 ease-in-out font-sans">
-
+      <SpeedInsights />
       <DynamicBackground stage={stage} score={cumulativeScore} />
-      <div className="vignette-overlay" />
+
+      {/* Ensure overlay allows clicking through */}
+      <div className="vignette-overlay pointer-events-none" />
+
       {stage !== 'thankyou' && <FloatingInteractiveEmojis containerRef={containerRef} />}
 
       <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-start z-30 pointer-events-none">
@@ -167,8 +165,6 @@ export default function HappyMeterApp() {
       </div>
 
       <AnimatePresence mode="wait">
-
-        {/* --- STAGE: WELCOME --- */}
         {stage === "welcome" && (
           <motion.div key="welcome" {...fadeInUp} className="glass-panel p-12 rounded-[2.5rem] text-center max-w-md w-full z-20 relative shadow-2xl border-white/50">
             <motion.div
@@ -189,29 +185,25 @@ export default function HappyMeterApp() {
           </motion.div>
         )}
 
-{/* --- STAGE: QUESTIONS --- */}
-{stage === "questions" && (
-  <motion.div key="questions" {...fadeInRight} className="glass-panel p-8 rounded-[2.5rem] max-w-xl w-full z-20 flex flex-col items-center relative shadow-2xl border-white/50">
-    {/* ... emoji and progress bar code ... */}
+        {stage === "questions" && (
+          <motion.div key="questions" {...fadeInRight} className="glass-panel p-8 rounded-[2.5rem] max-w-xl w-full z-20 flex flex-col items-center relative shadow-2xl border-white/50">
+             <div className="relative h-48 w-48 mb-4">
+                  <img ref={heroEmojiRef} src={getCurrentHeroImage()} alt="Current Mood" className="w-full h-full object-contain drop-shadow-[0_15px_35px_rgba(0,0,0,0.15)] will-change-transform" />
+             </div>
+             <div className="w-full bg-gray-200/50 h-3 rounded-full mb-8 overflow-hidden backdrop-blur-sm">
+                 <motion.div className="h-full rounded-full bg-gradient-to-r from-red-400 via-yellow-400 to-green-400" initial={{ width: 0 }} animate={{ width: `${((currentQIndex) / QUESTIONS.length) * 100}%` }} transition={{ ease: "easeOut" }} />
+             </div>
+            <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500 mb-2">{QUESTIONS[currentQIndex].category}</h2>
+            <h3 className="text-3xl font-black text-gray-800 text-center mb-10 leading-tight">{QUESTIONS[currentQIndex].text}</h3>
 
-    <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500 mb-2">{QUESTIONS[currentQIndex].category}</h2>
-    <h3 className="text-3xl font-black text-gray-800 text-center mb-10 leading-tight">{QUESTIONS[currentQIndex].text}</h3>
+            <div className="flex justify-center flex-wrap w-full gap-4 md:gap-6 px-1">
+                {[1, 2, 3, 4, 5].map((num) => (
+                    <ScoreButton key={num} score={num} onClick={() => handleAnswer(num)} onHover={() => playSound('hover')} />
+                ))}
+            </div>
+          </motion.div>
+        )}
 
-    {/* UPDATED: Container flex-wrap for mobile and spacing for indicators */}
-    <div className="flex justify-center flex-wrap w-full gap-4 md:gap-6 px-1">
-        {[1, 2, 3, 4, 5].map((num) => (
-            <ScoreButton
-                key={num}
-                score={num}
-                onClick={() => handleAnswer(num)}
-                onHover={() => playSound('hover')}
-            />
-        ))}
-    </div>
-  </motion.div>
-)}
-
-        {/* --- STAGE: DETAILS --- */}
         {stage === "details" && (
             <motion.div key="details" {...fadeInUp} className="glass-panel p-10 rounded-[2.5rem] max-w-md w-full z-20 relative shadow-2xl border-white/50">
              <h2 className="text-2xl font-black text-gray-800 mb-6">Almost done.</h2>
@@ -231,12 +223,11 @@ export default function HappyMeterApp() {
                         {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
                     </select>
                 </div>
-                <button type="submit" onMouseEnter={() => playSound('hover')} disabled={!userDetails.name || !userDetails.department} className="glass-button-active bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50 disabled:hover:bg-gray-900 px-10 py-4 rounded-2xl text-lg font-bold w-full transition-all mt-4 shadow-lg">Continue</button>
+                <button type="submit" onMouseEnter={() => playSound('hover')} disabled={!userDetails.name || !userDetails.department} className="glass-button-active bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50 px-10 py-4 rounded-2xl text-lg font-bold w-full transition-all mt-4 shadow-lg">Continue</button>
              </form>
             </motion.div>
         )}
 
-        {/* --- STAGE: FEEDBACK --- */}
         {stage === "feedback" && (
             <motion.div key="feedback" {...fadeInUp} className="glass-panel p-8 rounded-[2.5rem] max-w-lg w-full z-20 shadow-2xl border-white/50">
                  <h3 className="text-2xl font-black text-gray-800 mb-2">Any final thoughts?</h3>
@@ -249,7 +240,6 @@ export default function HappyMeterApp() {
              </motion.div>
         )}
 
-        {/* --- STAGE: SUBMITTING --- */}
         {stage === "submitting" && (
              <motion.div key="submitting" initial={{opacity:0}} animate={{opacity:1}} className="z-20 text-center p-8 glass-panel rounded-3xl">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-900 border-t-transparent mb-4"></div>
@@ -257,7 +247,6 @@ export default function HappyMeterApp() {
              </motion.div>
         )}
 
-        {/* --- STAGE: THANK YOU --- */}
         {stage === "thankyou" && (
             <motion.div key="thankyou" {...fadeInUp} className="glass-panel p-12 rounded-[2.5rem] text-center max-w-md w-full z-20 shadow-2xl border-white/50">
                 <motion.div initial={{scale:0}} animate={{scale:1}} transition={{type:'spring', delay:0.2, duration: 1}} className="w-48 h-48 mx-auto mb-6 relative">
@@ -275,12 +264,9 @@ export default function HappyMeterApp() {
   );
 }
 
-// --- Components ---
-
-// --- Updated Components for app/page.tsx ---
+// --- Internal Components ---
 
 function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefObject<HTMLDivElement> }) {
-    // UPDATED: Simplified paths to avoid 404s on Vercel/Linux
     const emojis = [
         "/emojis/floating-emojis/emoji-2.png",
         "/emojis/floating-emojis/emoji-3.png",
@@ -294,7 +280,6 @@ function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefOb
       const elements = gsap.utils.toArray('.floating-emoji');
 
       elements.forEach((el: any) => {
-        // Initial state
         gsap.set(el, {
           x: gsap.utils.random(0, window.innerWidth - 100),
           y: gsap.utils.random(0, window.innerHeight - 100),
@@ -303,10 +288,8 @@ function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefOb
           opacity: 0
         });
 
-        // Fade in
         gsap.to(el, { opacity: gsap.utils.random(0.4, 0.7), duration: 1.5, delay: gsap.utils.random(0, 1) });
 
-        // Floating movement
         gsap.to(el, {
           y: "+=" + gsap.utils.random(-150, 150),
           x: "+=" + gsap.utils.random(-100, 100),
@@ -317,7 +300,6 @@ function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefOb
           ease: "sine.inOut"
         });
 
-        // Interactivity - Ensured pointer-events-auto is on the element
         el.addEventListener("mouseenter", () => {
           gsap.to(el, { scale: 1.4, rotation: "+=15", opacity: 1, duration: 0.4, ease: "back.out(1.7)", overwrite: 'auto' });
         });
@@ -328,8 +310,7 @@ function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefOb
     }, { scope: containerRef });
 
     return (
-      // z-10 puts them between the background (-z-10) and the glass panel (z-20)
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         {emojis.map((src, i) => (
           <img
             key={i}
@@ -354,20 +335,14 @@ function DynamicBackground({ stage, score }: { stage: StageType, score: number |
 
   return (
     <div
-      className="absolute inset-0 -z-10 bg-warm-deep-animated transition-all duration-[1500ms] ease-in-out"
+      className="absolute inset-0 -z-20 bg-warm-deep-animated transition-all duration-[1500ms] ease-in-out"
       data-mood={moodLevel}
     />
   );
 }
 
 function ScoreButton({ score, onClick, onHover }: { score: number, onClick: () => void, onHover: () => void }) {
-    const labels: Record<number, string> = {
-        1: "Poor",
-        2: "Fair",
-        3: "Good",
-        4: "Very Good",
-        5: "Excellent"
-    };
+    const labels: Record<number, string> = { 1: "Poor", 2: "Fair", 3: "Good", 4: "Very Good", 5: "Excellent" };
 
     let colorClass = "";
     if(score === 1) colorClass = "bg-red-500 text-white border-2 border-red-600 hover:bg-red-600 shadow-red-500/20";
@@ -385,9 +360,7 @@ function ScoreButton({ score, onClick, onHover }: { score: number, onClick: () =
             >
                 {score}
             </button>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 opacity-80">
-                {labels[score]}
-            </span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 opacity-80">{labels[score]}</span>
         </div>
     );
 }
@@ -396,7 +369,7 @@ function Footer() {
   return (
     <footer className="fixed bottom-4 w-full text-center z-10 mix-blend-multiply font-bold">
       <a
-        href="https://linktr.ee/cyr1archives" // Replace with your actual portfolio or studio link
+        href="https://linktr.ee/cyr1archives"
         target="_blank"
         rel="noopener noreferrer"
         className="text-[10px] uppercase tracking-[0.2em] text-gray-500/60 hover:text-gray-800 transition-colors duration-300"
