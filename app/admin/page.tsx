@@ -144,7 +144,7 @@ export default function AdminDashboard() {
 
                 {/* Weekly Trend Chart */}
                 <motion.div initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className="md:col-span-8 glass-panel p-8 rounded-[2rem] min-h-[420px] flex flex-col justify-between shadow-xl">
-                    <h3 className="text-xl font-bold text-gray-700 mb-6">Sentiment Trend (7 Days)</h3>
+                    <h3 className="text-xl font-bold text-gray-700 mb-6">Sentiment Trend (Weekly)</h3>
                     <div className="h-[320px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={data.weeklyTrend}>
@@ -165,7 +165,7 @@ export default function AdminDashboard() {
 
                 {/* Department Chart */}
                 <motion.div initial={{opacity:0, x:20}} animate={{opacity:1, x:0}} className="md:col-span-4 glass-panel p-8 rounded-[2rem] shadow-xl">
-                    <h3 className="text-xl font-bold text-gray-700 mb-6">By Dept</h3>
+                    <h3 className="text-xl font-bold text-gray-700 mb-6">By Department</h3>
                     <div className="h-[320px] w-full">
                          <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={data.byDept} layout="vertical" barSize={24}>

@@ -179,9 +179,9 @@ export default function HappyMeterApp() {
             </motion.div>
 
             <h1 className="text-4xl font-black text-gray-800 mb-3 tracking-tight">Happy Meter V2</h1>
-            <p className="text-lg text-gray-600 mb-8 leading-relaxed font-medium">Let’s check in. Your honest feedback helps shape our workspace.</p>
+            <p className="text-lg text-gray-600 mb-8 leading-relaxed font-medium">Let’s check in and take a moment to share how you feel this week. Your honest feedback helps shape our workspace.</p>
             <button onClick={handleStart} onMouseEnter={() => playSound('hover')} className="glass-button-active bg-yellow-400/80 hover:bg-yellow-400 text-gray-900 px-10 py-4 rounded-full text-xl font-bold w-full transition-all active:scale-95 shadow-yellow-300/50 shadow-lg">
-              Start Check-in
+              Let's Begin
             </button>
           </motion.div>
         )}
@@ -210,7 +210,7 @@ export default function HappyMeterApp() {
 
         {stage === "details" && (
             <motion.div key="details" {...fadeInUp} className="glass-panel p-10 rounded-[2.5rem] max-w-md w-full z-20 relative shadow-2xl border-white/50">
-             <h2 className="text-2xl font-black text-gray-800 mb-6">Almost done.</h2>
+             <h2 className="text-2xl font-black text-gray-800 mb-6">Almost Done.</h2>
              <form onSubmit={handleDetailsSubmit} className="space-y-5">
                 <div>
                     <label htmlFor="id-input" className="block text-sm font-bold text-gray-500 mb-2 ml-3">Employee ID (Optional)</label>
@@ -235,10 +235,10 @@ export default function HappyMeterApp() {
         {stage === "feedback" && (
             <motion.div key="feedback" {...fadeInUp} className="glass-panel p-8 rounded-[2.5rem] max-w-lg w-full z-20 shadow-2xl border-white/50">
                  <h3 className="text-2xl font-black text-gray-800 mb-2">Any final thoughts?</h3>
-                 <p className="text-gray-600 mb-6 font-medium">Something you want to elaborate on? (Optional)</p>
+                 <p className="text-gray-600 mb-6 font-medium">Would you like to share anything more? (Optional)</p>
                  <textarea className="glass-input w-full rounded-2xl p-4 min-h-[140px] font-medium resize-none" placeholder="Type here..." value={feedbackText} onChange={(e) => setFeedbackText(e.target.value)} />
                  <div className="flex gap-3 mt-6">
-                    <button onClick={handleFinalSubmit} onMouseEnter={() => playSound('hover')} className="flex-1 bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-gray-800 transition-all shadow-lg active:scale-95">Submit Check-in</button>
+                    <button onClick={handleFinalSubmit} onMouseEnter={() => playSound('hover')} className="flex-1 bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-gray-800 transition-all shadow-lg active:scale-95">Submit</button>
                     <button onClick={handleFinalSubmit} onMouseEnter={() => playSound('hover')} className="px-6 text-gray-500 font-bold hover:text-gray-700 hover:bg-white/30 rounded-2xl transition-all">Skip</button>
                  </div>
              </motion.div>
@@ -258,8 +258,8 @@ export default function HappyMeterApp() {
                         <source src="/emojis/hero-onsubmit.webm" type="video/webm" />
                     </video>
                 </motion.div>
-                <h2 className="text-3xl font-black text-gray-800 mb-3">Thank you!</h2>
-                <p className="text-lg text-gray-600 font-medium">Your response has been recorded.</p>
+                <h2 className="text-3xl font-black text-gray-800 mb-3">Thank you for sharing how you feel today.</h2>
+                <p className="text-lg text-gray-600 font-medium">Your response has been recorded. Have a great weekend!</p>
             </motion.div>
         )}
       </AnimatePresence>
