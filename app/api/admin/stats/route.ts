@@ -55,6 +55,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error("Stats API Error:", error);
-    return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });
   }
 }
