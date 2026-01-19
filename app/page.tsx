@@ -276,50 +276,77 @@ function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefOb
     ];
 
     useGSAP(() => {
-      if (!containerRef.current) return;
-      const elements = gsap.utils.toArray('.floating-emoji');
+        if (!containerRef.current) return;
 
-      elements.forEach((el: any) => {
-        gsap.set(el, {
-          x: gsap.utils.random(0, window.innerWidth - 100),
-          y: gsap.utils.random(0, window.innerHeight - 100),
-          scale: gsap.utils.random(0.6, 1.1),
-          rotation: gsap.utils.random(-20, 20),
-          opacity: 0
+        const container = containerRef.current;
+        const elements = gsap.utils.toArray('.floating-emoji');
+
+        const initFloating = () => {
+            // 1. Get current dimensions
+            const w = container.offsetWidth || window.innerWidth;
+            const h = container.offsetHeight || window.innerHeight;
+
+            elements.forEach((el: any) => {
+                // 2. Clear any existing animations to prevent conflicts during resize
+                gsap.killTweensOf(el);
+
+                // 3. Set random position based on NEW dimensions
+                gsap.set(el, {
+                    x: gsap.utils.random(50, w - 100),
+                    y: gsap.utils.random(50, h - 100),
+                    scale: gsap.utils.random(0.6, 1.1),
+                    rotation: gsap.utils.random(-20, 20),
+                    opacity: 0,
+                    force3D: true
+                });
+
+                // 4. Restart Animations
+                gsap.to(el, { opacity: gsap.utils.random(0.4, 0.7), duration: 1.5 });
+
+                gsap.to(el, {
+                    y: "+=" + gsap.utils.random(-120, 120),
+                    x: "+=" + gsap.utils.random(-100, 100),
+                    rotation: "+=" + gsap.utils.random(-40, 40),
+                    duration: gsap.utils.random(10, 20),
+                    repeat: -1,
+                    yoyo: true,
+                    ease: "sine.inOut"
+                });
+            });
+        };
+
+        // Run on initial mount
+        initFloating();
+
+        // 5. Add Resize Listener
+        window.addEventListener('resize', initFloating);
+
+        // 6. Interaction Listeners (Persistent)
+        elements.forEach((el: any) => {
+            el.addEventListener("mouseenter", () => {
+                gsap.to(el, { scale: 1.4, opacity: 1, duration: 0.3, overwrite: 'auto' });
+            });
+            el.addEventListener("mouseleave", () => {
+                gsap.to(el, { scale: gsap.utils.random(0.6, 1.1), opacity: 0.6, duration: 0.5, overwrite: 'auto' });
+            });
         });
 
-        gsap.to(el, { opacity: gsap.utils.random(0.4, 0.7), duration: 1.5, delay: gsap.utils.random(0, 1) });
+        // Cleanup listener on unmount
+        return () => window.removeEventListener('resize', initFloating);
 
-        gsap.to(el, {
-          y: "+=" + gsap.utils.random(-150, 150),
-          x: "+=" + gsap.utils.random(-100, 100),
-          rotation: "+=" + gsap.utils.random(-45, 45),
-          duration: gsap.utils.random(10, 25),
-          repeat: -1,
-          yoyo: true,
-          ease: "sine.inOut"
-        });
-
-        el.addEventListener("mouseenter", () => {
-          gsap.to(el, { scale: 1.4, rotation: "+=15", opacity: 1, duration: 0.4, ease: "back.out(1.7)", overwrite: 'auto' });
-        });
-        el.addEventListener("mouseleave", () => {
-          gsap.to(el, { scale: gsap.utils.random(0.6, 1.1), opacity: 0.6, duration: 0.6, ease: "power2.out", overwrite: 'auto' });
-        });
-      });
     }, { scope: containerRef });
 
     return (
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        {emojis.map((src, i) => (
-          <img
-            key={i}
-            src={src}
-            alt=""
-            className="floating-emoji absolute w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-lg pointer-events-auto will-change-transform cursor-pointer"
-          />
-        ))}
-      </div>
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+            {emojis.map((src, i) => (
+                <img
+                    key={i}
+                    src={src}
+                    alt=""
+                    className="floating-emoji absolute w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-lg pointer-events-auto will-change-transform cursor-pointer"
+                />
+            ))}
+        </div>
     );
 }
 
@@ -347,7 +374,7 @@ function ScoreButton({ score, onClick, onHover }: { score: number, onClick: () =
     let colorClass = "";
     if(score === 1) colorClass = "bg-red-500 text-white border-2 border-red-600 hover:bg-red-600 shadow-red-500/20";
     if(score === 2) colorClass = "bg-orange-500 text-white border-2 border-orange-600 hover:bg-orange-600 shadow-orange-500/20";
-    if(score === 3) colorClass = "bg-yellow-400 text-gray-900 border-2 border-yellow-500 hover:bg-yellow-500 shadow-yellow-500/20";
+    if(score === 3) colorClass = "bg-yellow-400 text-white border-2 border-yellow-500 hover:bg-yellow-500 shadow-yellow-500/20";
     if(score === 4) colorClass = "bg-green-500 text-white border-2 border-green-600 hover:bg-green-600 shadow-green-500/20";
     if(score === 5) colorClass = "bg-blue-500 text-white border-2 border-blue-600 hover:bg-blue-600 shadow-blue-500/20";
 
