@@ -8,10 +8,9 @@ import confetti from "canvas-confetti";
 import { Howl } from 'howler';
 import Link from "next/link";
 import { UserCircle2 } from "lucide-react";
-
+import { DEPARTMENTS } from "@/app/lib/constants"; // Import here
 gsap.registerPlugin(useGSAP);
 
-const DEPARTMENTS = ['Executive', 'PABE Corp', 'PABE Trucking', 'EDM Security', 'Human Resources', 'Data Operations', 'Finance', 'Kariyala Manpower', 'Trimega'];
 
 const QUESTIONS = [
   { id: "q1", text: "How are you today?", category: "Mood & Well-Being" },
@@ -189,24 +188,27 @@ export default function HappyMeterApp() {
           </motion.div>
         )}
 
-        {/* --- STAGE: QUESTIONS --- */}
-        {stage === "questions" && (
-          <motion.div key="questions" {...fadeInRight} className="glass-panel p-8 rounded-[2.5rem] max-w-xl w-full z-20 flex flex-col items-center relative shadow-2xl border-white/50">
-            <div className="relative h-48 w-48 mb-4">
-                 <img ref={heroEmojiRef} src={getCurrentHeroImage()} alt="Current Mood" className="w-full h-full object-contain drop-shadow-[0_15px_35px_rgba(0,0,0,0.15)] will-change-transform" />
-            </div>
-            <div className="w-full bg-gray-200/50 h-3 rounded-full mb-8 overflow-hidden backdrop-blur-sm">
-                <motion.div className="h-full rounded-full bg-gradient-to-r from-red-400 via-yellow-400 to-green-400" initial={{ width: 0 }} animate={{ width: `${((currentQIndex) / QUESTIONS.length) * 100}%` }} transition={{ ease: "easeOut" }} />
-            </div>
-            <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500 mb-2">{QUESTIONS[currentQIndex].category}</h2>
-            <h3 className="text-3xl font-black text-gray-800 text-center mb-10 leading-tight">{QUESTIONS[currentQIndex].text}</h3>
+{/* --- STAGE: QUESTIONS --- */}
+{stage === "questions" && (
+  <motion.div key="questions" {...fadeInRight} className="glass-panel p-8 rounded-[2.5rem] max-w-xl w-full z-20 flex flex-col items-center relative shadow-2xl border-white/50">
+    {/* ... emoji and progress bar code ... */}
 
-            {/* UPDATED: Buttons are now explicitly colored to be visible against yellow */}
-            <div className="flex justify-between w-full gap-2 px-1">
-                {[1, 2, 3, 4, 5].map((num) => (<ScoreButton key={num} score={num} onClick={() => handleAnswer(num)} onHover={() => playSound('hover')} />))}
-            </div>
-          </motion.div>
-        )}
+    <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500 mb-2">{QUESTIONS[currentQIndex].category}</h2>
+    <h3 className="text-3xl font-black text-gray-800 text-center mb-10 leading-tight">{QUESTIONS[currentQIndex].text}</h3>
+
+    {/* UPDATED: Container flex-wrap for mobile and spacing for indicators */}
+    <div className="flex justify-center flex-wrap w-full gap-4 md:gap-6 px-1">
+        {[1, 2, 3, 4, 5].map((num) => (
+            <ScoreButton
+                key={num}
+                score={num}
+                onClick={() => handleAnswer(num)}
+                onHover={() => playSound('hover')}
+            />
+        ))}
+    </div>
+  </motion.div>
+)}
 
         {/* --- STAGE: DETAILS --- */}
         {stage === "details" && (
@@ -305,40 +307,70 @@ function FloatingInteractiveEmojis({ containerRef }: { containerRef: React.RefOb
 }
 
 function DynamicBackground({ stage, score }: { stage: StageType, score: number | null }) {
-    let bgClass = "bg-warm-deep-animated";
-    let gradientValue = "";
-    if (stage !== 'welcome' && score !== null) {
-        bgClass = "transition-all duration-[1500ms] ease-in-out";
-        if (score <= 1.5) gradientValue = 'linear-gradient(135deg, #ef4444, #f87171)';
-        else if (score <= 2.5) gradientValue = 'linear-gradient(135deg, #f97316, #fb923c)';
-        else if (score <= 3.5) gradientValue = 'linear-gradient(135deg, #eab308, #facc15)';
-        else if (score <= 4.5) gradientValue = 'linear-gradient(135deg, #22c55e, #4ade80)';
-        else gradientValue = 'linear-gradient(135deg, #3b82f6, #60a5fa)';
-    }
-    return (<div className={`absolute inset-0 -z-10 ${bgClass}`} style={gradientValue ? { background: gradientValue } : {}} />);
+  // Determine the mood level based on score
+  let moodLevel = "default";
+  if (stage !== 'welcome' && score !== null) {
+    if (score <= 1.5) moodLevel = "poor";
+    else if (score <= 2.5) moodLevel = "fair";
+    else if (score <= 3.5) moodLevel = "good";
+    else if (score <= 4.5) moodLevel = "very-good";
+    else moodLevel = "excellent";
+  }
+
+  return (
+    <div
+      className={`absolute inset-0 -z-10 bg-warm-deep-animated transition-all duration-[1500ms] ease-in-out`}
+      data-mood={moodLevel} // Use data attribute instead of style prop
+    />
+  );
 }
 
 function ScoreButton({ score, onClick, onHover }: { score: number, onClick: () => void, onHover: () => void }) {
-    // FIX: Using solid colors + white text to ensure high contrast/visibility on yellow background
+    const labels: Record<number, string> = {
+        1: "Poor",
+        2: "Fair",
+        3: "Good",
+        4: "Very Good",
+        5: "Excellent"
+    };
+
     let colorClass = "";
-    if(score === 1) colorClass = "bg-red-500 text-white border-2 border-red-600 hover:bg-red-600 hover:scale-105 shadow-xl shadow-red-500/20";
-    if(score === 2) colorClass = "bg-orange-500 text-white border-2 border-orange-600 hover:bg-orange-600 hover:scale-105 shadow-xl shadow-orange-500/20";
-    if(score === 3) colorClass = "bg-yellow-400 text-gray-900 border-2 border-yellow-500 hover:bg-yellow-500 hover:scale-105 shadow-xl shadow-yellow-500/20";
-    if(score === 4) colorClass = "bg-green-500 text-white border-2 border-green-600 hover:bg-green-600 hover:scale-105 shadow-xl shadow-green-500/20";
-    if(score === 5) colorClass = "bg-blue-500 text-white border-2 border-blue-600 hover:bg-blue-600 hover:scale-105 shadow-xl shadow-blue-500/20";
+    if(score === 1) colorClass = "bg-red-500 text-white border-2 border-red-600 hover:bg-red-600 shadow-red-500/20";
+    if(score === 2) colorClass = "bg-orange-500 text-white border-2 border-orange-600 hover:bg-orange-600 shadow-orange-500/20";
+    if(score === 3) colorClass = "bg-yellow-400 text-gray-900 border-2 border-yellow-500 hover:bg-yellow-500 shadow-yellow-500/20";
+    if(score === 4) colorClass = "bg-green-500 text-white border-2 border-green-600 hover:bg-green-600 shadow-green-500/20";
+    if(score === 5) colorClass = "bg-blue-500 text-white border-2 border-blue-600 hover:bg-blue-600 shadow-blue-500/20";
 
     return (
-        <button
-            onClick={onClick}
-            onMouseEnter={onHover}
-            className={`w-16 h-16 rounded-2xl font-black text-2xl transition-all duration-200 active:scale-90 active:translate-y-1 ${colorClass}`}
-        >
-            {score}
-        </button>
+        <div className="flex flex-col items-center gap-2">
+            <button
+                onClick={onClick}
+                onMouseEnter={onHover}
+                className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl font-black text-2xl transition-all duration-200 active:scale-90 active:translate-y-1 shadow-xl hover:scale-110 ${colorClass}`}
+            >
+                {score}
+            </button>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 opacity-80">
+                {labels[score]}
+            </span>
+        </div>
     );
 }
 
-function Footer() { return (<footer className="fixed bottom-4 w-full text-center text-[10px] uppercase tracking-[0.2em] text-gray-500/60 z-10 mix-blend-multiply font-bold">Copyright © 2026 CYR1 Studio by Cyrone Dumadag.</footer>); }
+function Footer() {
+  return (
+    <footer className="fixed bottom-4 w-full text-center z-10 mix-blend-multiply font-bold">
+      <a
+        href="https://linktr.ee/cyr1archives" // Replace with your actual portfolio or studio link
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-[10px] uppercase tracking-[0.2em] text-gray-500/60 hover:text-gray-800 transition-colors duration-300"
+      >
+        Copyright © 2026 CYR1 Studio by Cyrone Dumadag.
+      </a>
+    </footer>
+  );
+}
 
 const fadeInUp = { initial: { opacity: 0, y: 60, scale: 0.9 }, animate: { opacity: 1, y: 0, scale: 1 }, exit: { opacity: 0, y: -30, scale: 0.95, transition: { duration: 0.3, ease: "anticipate" } }, transition: { duration: 0.5, ease: [0.23, 1, 0.32, 1] } };
 const fadeInRight = { initial: { opacity: 0, x: 60, scale: 0.95 }, animate: { opacity: 1, x: 0, scale: 1 }, exit: { opacity: 0, x: -60, scale: 0.95, transition: { duration: 0.3, ease: "anticipate" } }, transition: { duration: 0.5, ease: [0.23, 1, 0.32, 1] } };

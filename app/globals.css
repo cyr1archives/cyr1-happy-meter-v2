@@ -16,13 +16,9 @@
 /* FIX: Apply text-size-adjust to html and body for maximum compatibility */
 html, body {
   color: rgb(var(--foreground));
-  background: #fefce8;
-  min-height: 100vh;
-  overflow-x: hidden;
-
-  /* Standard first, then prefixed for older browsers, then standard again to override */
-  -moz-text-size-adjust: 100%;
+  background: #fff588;
   -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
 
@@ -54,15 +50,34 @@ html, body {
 
 /* --- Interactive Vignette & Backgrounds --- */
 
-@keyframes deepWarmPulse {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
+/* Your base animated class */
 .bg-warm-deep-animated {
-    background: linear-gradient(-45deg, #fefce8, #fff7ed, #fef08a, #fde68a);
+    background: linear-gradient(-45deg, #e0a743, #ffdb25, #fef08a, #ffba31);
     background-size: 300% 300%;
     animation: deepWarmPulse 20s ease infinite;
+}
+
+/* Dynamic colors based on the data-mood attribute */
+.bg-warm-deep-animated[data-mood="poor"] {
+    background: linear-gradient(135deg, #ef4444, #f87171);
+}
+.bg-warm-deep-animated[data-mood="fair"] {
+    background: linear-gradient(135deg, #f97316, #fb923c);
+}
+.bg-warm-deep-animated[data-mood="good"] {
+    background: linear-gradient(135deg, #eab308, #facc15);
+}
+.bg-warm-deep-animated[data-mood="very-good"] {
+    background: linear-gradient(135deg, #22c55e, #4ade80);
+}
+.bg-warm-deep-animated[data-mood="excellent"] {
+    background: linear-gradient(135deg, #3b82f6, #60a5fa);
+}
+
+@keyframes deepWarmPulse {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 .vignette-overlay {

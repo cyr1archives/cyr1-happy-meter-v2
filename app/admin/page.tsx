@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { UserCircle, FileDown, FileText } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-
+import { DEPARTMENTS } from "@/app/lib/constants";
 // ... (Keep existing Types: DashboardData) ...
 interface DashboardData {
   total: number;
@@ -29,32 +29,33 @@ export default function AdminDashboard() {
     else { alert("Invalid Access Code"); }
   };
 
-  const fetchData = async () => {
-    setLoading(true);
-    setTimeout(() => {
-        setData({
-            total: 142,
-            average: 3.8,
-            weeklyTrend: [
-                { week: 'Dec 10 - Dec 16', score: 3.5 }, { week: 'Dec 17 - Dec 23', score: 3.9 },
-                { week: 'Dec 24 - Dec 30', score: 4.2 }, { week: 'Dec 31 - Jan 06', score: 3.6 },
-                { week: 'Jan 07 - Jan 13', score: 4.5 }
-            ],
-            byDept: [
-                { name: 'Design', score: 4.5 }, { name: 'Eng', score: 2.9 },
-                { name: 'Product', score: 3.5 }, { name: 'Sales', score: 4.8 }, { name: 'HR', score: 3.2 }
-            ],
-            recent: [
-                { name: 'Alex S.', dept: 'Design', mood: 'Very Satisfied', feedback: 'Great flow today.', date: 'Today, 10:42 AM' },
-                { name: 'Jordan K.', dept: 'Eng', mood: 'Dissatisfied', feedback: 'Blocked on API.', date: 'Today, 09:15 AM' },
-                { name: 'Sam M.', dept: 'Sales', mood: 'Very Satisfied', feedback: 'Closed a big deal!', date: 'Today, 08:55 AM' },
-                { name: 'Casey L.', dept: 'HR', mood: 'Neutral', feedback: 'Office temp is too cold.', date: 'Yesterday' },
-                { name: 'Taylor R.', dept: 'Product', mood: 'Satisfied', feedback: '', date: 'Yesterday' },
-            ]
-        });
-        setLoading(false);
-    }, 1500);
-  };
+// Inside your AdminDashboard component...
+
+const fetchData = async () => {
+  setLoading(true);
+  try {
+    const response = await fetch('/api/admin/stats');
+    if (!response.ok) throw new Error('Network error');
+
+    const liveData = await response.json();
+
+    setData({
+      total: liveData.totalCount,
+      average: liveData.averageMood,
+      // Default weekly trend if database is new
+      weeklyTrend: liveData.weeklyTrend.length > 0 ? liveData.weeklyTrend : [
+        { week: 'Past Week', score: liveData.averageMood }
+      ],
+      byDept: liveData.byDept,
+      recent: liveData.recent
+    });
+  } catch (error) {
+    console.error("Fetch error:", error);
+    // Optional: Keep mock data here as a fallback
+  } finally {
+    setLoading(false);
+  }
+};
 
   // ... (Keep existing Export Functions) ...
   const exportCSV = () => { /* ... same as before ... */ };

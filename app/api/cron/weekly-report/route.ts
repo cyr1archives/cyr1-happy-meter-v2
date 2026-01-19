@@ -1,67 +1,88 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import * as xlsx from 'xlsx';
+import { PrismaClient } from '@prisma/client';
 import nodemailer from 'nodemailer';
+import { DEPARTMENTS } from '@/app/lib/constants';
 
-export async function GET(req: Request) {
+const prisma = new PrismaClient();
+
+export async function GET(request: Request) {
+  // 1. Security Check (Only Vercel can trigger this)
+  const authHeader = request.headers.get('authorization');
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   try {
-    // 1. Calculate Date Range (Last 7 Days)
+    // 2. Fetch Data from the last 7 days
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    // 2. Fetch Data
-    const submissions = await prisma.submission.findMany({
-      where: {
-        createdAt: {
-          gte: sevenDaysAgo,
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+    const data = await prisma.response.findMany({
+      where: { createdAt: { gte: sevenDaysAgo } }
     });
 
-    if (submissions.length === 0) {
-      return NextResponse.json({ message: 'No data to report' });
+    if (data.length === 0) {
+      return NextResponse.json({ message: "No responses this week. Email skipped." });
     }
 
-    // 3. Generate Excel
-    const excelRows = submissions.map((sub) => ({
-      Date: sub.createdAt.toISOString().split('T')[0],
-      Name: sub.name,
-      Department: sub.department,
-      "Overall Mood": sub.moodLabel,
-      "Score": sub.averageScore,
-      Feedback: sub.feedback
-    }));
+    // 3. Calculate Stats
+    const totalCount = data.length;
+    const avgScore = data.reduce((acc, curr) => {
+      const vals = Object.values(curr.scores as any) as number[];
+      return acc + (vals.reduce((a, b) => a + b, 0) / vals.length);
+    }, 0) / totalCount;
 
-    const workbook = xlsx.utils.book_new();
-    const worksheet = xlsx.utils.json_to_sheet(excelRows);
-    xlsx.utils.book_append_sheet(workbook, worksheet, "Weekly Moods");
-
-    const buffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
-
-    // 4. Send Email
+    // 4. Setup Email Transporter
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        pass: process.env.EMAIL_PASS, // Use Gmail App Password here
       },
     });
 
-    await transporter.sendMail({
-      from: '"Happy Meter Bot" <noreply@cyr1.studio>',
-      to: 'dumadag.cyrone@pabecorp.com',
-      subject: ` Happy Meter Weekly Report - ${new Date().toLocaleDateString()}`,
-      text: `Happy Saturday! Attached is the sentiment report for the past week. Total submissions: ${submissions.length}`,
-      attachments: [{ filename: 'Mood_Report.xlsx', content: buffer }],
+    // 5. Generate Manila Date for Subject
+    const manilaDate = new Date().toLocaleDateString('en-PH', {
+      timeZone: 'Asia/Manila',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
     });
 
-    return NextResponse.json({ success: true, count: submissions.length });
+    // 6. Send the Email
+    await transporter.sendMail({
+      from: `"Happy Meter AI" <${process.env.EMAIL_USER}>`,
+      to: 'leadership@yourcompany.com', // Change this to your boss/client email
+      subject: `Weekly Team Pulse: ${manilaDate}`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; color: #333;">
+          <h1 style="color: #1a202c;">Weekly Sentiment Report</h1>
+          <p style="font-size: 16px;">Here is the summary for the week ending on Saturday, 7:00 PM PHT.</p>
 
-  } catch (error: any) {
+          <div style="background: #f7fafc; padding: 20px; border-radius: 12px; margin: 20px 0;">
+            <p style="margin: 0; font-weight: bold; color: #4a5568;">AVERAGE MOOD</p>
+            <h2 style="font-size: 48px; margin: 10px 0; color: #2d3748;">${avgScore.toFixed(1)} <span style="font-size: 20px; color: #a0aec0;">/ 5</span></h2>
+            <p style="margin: 0; color: #718096;">Total Check-ins: <strong>${totalCount}</strong></p>
+          </div>
+
+          <h3>Department Breakdown:</h3>
+          <ul>
+            ${DEPARTMENTS.map(dept => {
+              const count = data.filter(r => r.department === dept).length;
+              return `<li><strong>${dept}:</strong> ${count} responses</li>`;
+            }).join('')}
+          </ul>
+
+          <p style="margin-top: 30px; font-size: 12px; color: #a0aec0;">
+            This is an automated report from the Happy Meter V2 Dashboard.
+          </p>
+        </div>
+      `,
+    });
+
+    return NextResponse.json({ success: true, count: totalCount });
+  } catch (error) {
     console.error("Cron Error:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
