@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -144,7 +144,7 @@ export default function HappyMeterApp() {
       <div className="vignette-overlay pointer-events-none" />
 
       {/* Draggable Emojis Option - Optimized for Touch */}
-      {stage !== 'thankyou' && <DraggableEmojis containerRef={containerRef} />}
+      {stage === 'welcome' && <DraggableEmojis containerRef={containerRef} />}
 
       <div className="absolute top-0 left-0 w-full p-4 md:p-6 flex justify-between items-start z-30 pointer-events-none">
          <div className="w-10"></div>
@@ -269,6 +269,18 @@ export default function HappyMeterApp() {
 // --- Internal Components ---
 
 function DraggableEmojis({ containerRef }: { containerRef: React.RefObject<HTMLDivElement> }) {
+  const floatVariants = useMemo(
+    () =>
+      Array.from({ length: 5 }).map(() => ({
+        driftX: (Math.random() * 24 + 8) * (Math.random() > 0.5 ? 1 : -1),
+        driftY: (Math.random() * 22 + 10) * (Math.random() > 0.5 ? 1 : -1),
+        rotate: (Math.random() * 6 + 4) * (Math.random() > 0.5 ? 1 : -1),
+        scale: Math.random() * 0.06 + 0.98,
+        duration: Math.random() * 4 + 6,
+        delay: Math.random() * 0.6,
+      })),
+    []
+  );
   const emojis = [
     { src: "/emojis/floating-emojis/emoji-2.png", x: "15%", y: "15%" },
     { src: "/emojis/floating-emojis/emoji-3.png", x: "75%", y: "25%" },
@@ -285,10 +297,24 @@ function DraggableEmojis({ containerRef }: { containerRef: React.RefObject<HTMLD
           src={item.src}
           drag
           dragConstraints={containerRef}
+          dragElastic={0.2}
+          dragTransition={{ bounceStiffness: 200, bounceDamping: 18 }}
           whileHover={{ scale: 1.15, rotate: 10 }}
           whileTap={{ scale: 0.9 }}
           initial={{ opacity: 0, x: 0, y: 0 }}
-          animate={{ opacity: 0.5, x: 0, y: 0 }}
+          animate={{
+            opacity: 0.55,
+            x: [0, floatVariants[i].driftX, 0],
+            y: [0, floatVariants[i].driftY, 0],
+            rotate: [0, floatVariants[i].rotate, 0],
+            scale: [1, floatVariants[i].scale, 1],
+          }}
+          transition={{
+            duration: floatVariants[i].duration,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: floatVariants[i].delay,
+          }}
           style={{
             position: 'absolute',
             left: item.x,

@@ -11,6 +11,8 @@ import jsPDF from "jspdf";
 interface DashboardData {
   total: number;
   average: number;
+  weeklyAverage: number;
+  nextReset: string;
   weeklyTrend: { week: string; score: number }[];
   byDept: { name: string; score: number }[];
   recent: { name: string; dept: string; mood: string; feedback: string; date: string }[];
@@ -22,6 +24,9 @@ export default function AdminDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
+  const nextResetLabel = data?.nextReset
+    ? new Date(data.nextReset).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+    : "";
 
   // Authentication Logic
   const handleLogin = (e: React.FormEvent) => {
@@ -45,9 +50,11 @@ export default function AdminDashboard() {
       const liveData = await response.json();
 
       setData({
-        total: liveData.totalCount,
+        total: liveData.weeklyTotal,
         average: liveData.averageMood,
-        weeklyTrend: liveData.weeklyTrend.length > 0 ? liveData.weeklyTrend : [{ week: 'Today', score: liveData.averageMood }],
+        weeklyAverage: liveData.weeklyAverageMood,
+        nextReset: liveData.nextReset,
+        weeklyTrend: liveData.weeklyTrend.length > 0 ? liveData.weeklyTrend : [{ week: 'Today', score: liveData.weeklyAverageMood }],
         byDept: liveData.byDept,
         recent: liveData.recent
       });
@@ -138,9 +145,9 @@ export default function AdminDashboard() {
             </div>
         ) : (
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                <KPICard title="Total Check-ins" value={data.total} trend="Live Data" />
-                <KPICard title="Avg Mood Score" value={data.average} trend="Real-time" isScore />
-                <KPICard title="Response Rate" value="--" trend="Variable" />
+                <KPICard title="Weekly Check-ins" value={data.total} trend={`Resets ${nextResetLabel}`} delay={0.05} />
+                <KPICard title="Weekly Mood Score" value={data.weeklyAverage} trend="This Week" isScore delay={0.15} />
+                <KPICard title="Response Rate" value="--" trend="Variable" delay={0.25} />
 
                 {/* Weekly Trend Chart */}
                 <motion.div initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className="md:col-span-8 glass-panel p-8 rounded-[2rem] min-h-[420px] flex flex-col justify-between shadow-xl">
@@ -195,7 +202,13 @@ export default function AdminDashboard() {
                             </thead>
                             <tbody className="text-sm">
                                 {data.recent.map((item, i) => (
-                                    <tr key={i} className="group hover:bg-white/40 transition-colors border-b border-transparent hover:border-gray-100/30">
+                                    <motion.tr
+                                      key={i}
+                                      initial={{ opacity: 0, y: 8 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      transition={{ duration: 0.3, delay: 0.05 * i }}
+                                      className="group hover:bg-white/40 transition-colors border-b border-transparent hover:border-gray-100/30"
+                                    >
                                         <td className="py-4 pl-4 font-bold text-gray-800 flex items-center gap-3">
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm ${getAvatarColor(item.mood)}`}>
                                                 {item.name.charAt(0)}
@@ -206,7 +219,7 @@ export default function AdminDashboard() {
                                         <td className="py-4"><span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide ${getBadgeColor(item.mood)}`}>{item.mood}</span></td>
                                         <td className="py-4 text-gray-600 italic text-xs">{item.feedback || "-"}</td>
                                         <td className="py-4 text-right pr-4 text-[10px] font-bold text-gray-400 uppercase">{item.date}</td>
-                                    </tr>
+                                    </motion.tr>
                                 ))}
                             </tbody>
                         </table>
@@ -221,9 +234,15 @@ export default function AdminDashboard() {
 
 // --- Helper Components ---
 
-function KPICard({ title, value, trend, isScore = false }: any) {
+function KPICard({ title, value, trend, isScore = false, delay = 0 }: any) {
     return (
-        <motion.div whileHover={{ y: -5 }} className="md:col-span-4 glass-panel p-8 rounded-[2rem] relative overflow-hidden group border-white/60 shadow-xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay }}
+          whileHover={{ y: -5 }}
+          className="md:col-span-4 glass-panel p-8 rounded-[2rem] relative overflow-hidden group border-white/60 shadow-xl"
+        >
             <div className="absolute -right-10 -top-10 w-32 h-32 bg-gradient-to-br from-yellow-100 to-transparent rounded-full opacity-30 group-hover:opacity-50 transition-opacity" />
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{title}</p>
             <div className="flex items-end gap-3"><h2 className="text-5xl font-black text-gray-800 tracking-tighter">{value}{isScore && <span className="text-3xl text-gray-400 font-medium">/5</span>}</h2></div>
